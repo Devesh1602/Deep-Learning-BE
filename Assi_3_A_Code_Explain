@@ -17,6 +17,18 @@ from tensorflow.keras.preprocessing.image import load_img, img_to_array
 This line imports the load_img and img_to_array functions from the tensorflow.keras.preprocessing.image module. 
 These functions are used for loading images from files and converting them to NumPy arrays, respectively. They are commonly used in image preprocessing pipelines for deep learning tasks.
 
+train_healthy = "G:\DEEP LEARNING\Train\Train\Healthy"
+train_powdery = "G:\DEEP LEARNING\Train\Train\Powdery"
+train_rust ="G:\DEEP LEARNING\Train\Train\Rust"
+
+test_healthy ="G:\DEEP LEARNING\Test\Test\Healthy"
+test_powdery ="G:\DEEP LEARNING\Test\Test\Powdery"
+test_rust ="G:\DEEP LEARNING\Test\Test\Rust"
+
+valid_healthy = "G:\DEEP LEARNING\Validation\Validation\Healthy"
+valid_powdery ="G:\DEEP LEARNING\Validation\Validation\Powdery"
+valid_rust ="G:\DEEP LEARNING\Validation\Validation\Rust"
+
 Importing Matplotlib:
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
@@ -31,27 +43,40 @@ Loading and Displaying the Image:
 img = mpimg.imread(image_path)
 plt.imshow(img)
 plt.show()
+
 mpimg.imread(image_path) loads the image located at image_path into a NumPy array.
 plt.imshow(img) displays the image represented by the NumPy array img using Matplotlib.
 plt.show() displays the image plot.
 
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+image_path = 'Train\Train\Rust\80f09587dfc7988e.jpg'
+img = mpimg.imread(image_path)
+plt.imshow(img)
+plt.show()
+
+
 Importing ImageDataGenerator:
 from keras.preprocessing.image import ImageDataGenerator
 This line imports the ImageDataGenerator class from Keras' image preprocessing module.
-ImageDataGenerator is used for real-time data augmentation and preprocessing of image data during training.
+ImageDataGenerator is used for real-time data augmentation(the process of artificially generating new data from existing data, primarily to train new machine learning (ML) models.) 
+and preprocessing of image data during training.
 
 Setting up Train and Test Data Generators:
+
 train_datagen = ImageDataGenerator(rescale=1./255, shear_range=0.2, zoom_range=0.2, horizontal_flip=True)
 test_datagen = ImageDataGenerator(rescale=1./255)
+
 These lines create instances of the ImageDataGenerator class for training and testing data, respectively.
 For the training data generator (train_datagen), several augmentation techniques are applied:
 rescale=1./255: Rescales pixel values to the range [0, 1].
-shear_range=0.2: Applies shear transformations with a range of 0.2.
+shear_range=0.2: Applies shear transformations(changes the shape of object, The sliding of layers of object occur in X and Y direction) with a range of 0.2.
 zoom_range=0.2: Applies random zooms with a range of 0.2.
 horizontal_flip=True: Randomly flips images horizontally.
 For the testing data generator (test_datagen), only rescaling is applied (rescale=1./255), as data augmentation is not performed on the testing data.
 
 Setting up Train Generator:
+
 train_generator = train_datagen.flow_from_directory('G:\DEEP LEARNING\Train\Train',
                                                     target_size=(225, 225),
                                                     batch_size=32,
@@ -63,6 +88,7 @@ batch_size=32 specifies the batch size for training.
 class_mode='categorical' indicates that the generator will yield one-hot encoded labels for categorical classification tasks.
 
 Setting up Validation Generator:
+
 validation_generator = test_datagen.flow_from_directory('G:\DEEP LEARNING\Validation\Validation',
                                                         target_size=(225, 225),
                                                         batch_size=32,
@@ -130,3 +156,89 @@ epochs=20 specifies the number of training epochs, i.e., the number of times the
 validation_data=validation_generator specifies the validation data source, providing batches of preprocessed validation images and labels.
 validation_batch_size=16 specifies the batch size for the validation data.
 The training progress and evaluation metrics (e.g., loss and accuracy) for both training and validation datasets will be stored in the history object.
+
+
+import matplotlib.pyplot as plt
+
+plt.plot(history.history['accuracy'], label='train')
+plt.plot(history.history['val_accuracy'], label='val')
+plt.title('Model Accuracy')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.legend()
+plt.show()
+
+Plots the training and validation accuracy over epochs to visualize model performance.
+
+
+1. ```python
+   def preprocess_image(image_path, target_size=(225, 225)):
+   ```
+   - This line defines a function named `preprocess_image` that takes two arguments: `image_path`, which specifies the path of the image file to be processed, and `target_size`, which sets the desired size for the image.
+
+2. ```python
+   img = load_img(image_path, target_size=target_size)
+   ```
+   - This line loads the image from the specified `image_path` and resizes it to the `target_size` using the `load_img` function from Keras.
+
+3. ```python
+   x = img_to_array(img)
+   ```
+   - Converts the image loaded in the previous step into a NumPy array using the `img_to_array` function. This array representation is suitable for further processing in the model.
+
+4. ```python
+   x = x.astype('float32') / 255.
+   ```
+   - Converts the data type of the array to `float32` and normalizes the pixel values to the range of [0, 1] by dividing each pixel value by 255. This normalization step helps in better training and convergence of the model.
+
+5. ```python
+   x = np.expand_dims(x, axis=0)
+   ```
+   - Expands the dimensions of the array `x` along the specified axis (axis=0) to create a batch of size 1. This is necessary because the model expects input data in batches even if there's only one sample.
+
+6. ```python
+   return x
+   ```
+   - Returns the preprocessed image array (`x`) to the caller.
+
+7. ```python
+   x = preprocess_image('rust.png')
+   ```
+   - Calls the `preprocess_image` function with the image file path `'rust.png'` and assigns the preprocessed image array to the variable `x`.
+
+8. ```python
+   model.save('leaf_desease.h5')
+   ```
+   - Saves the trained model to a file named `'leaf_desease.h5'` using the `save` method of the model object. This allows you to load and reuse the model later without needing to retrain it.
+
+9. ```python
+   from tensorflow.keras.models import load_model
+   ```
+   - Imports the `load_model` function from TensorFlow's Keras module, which is used to load a saved model from a file.
+
+10. ```python
+    loaded_model = load_model('leaf_desease.h5')
+    ```
+    - Loads the previously saved model from the file `'leaf_desease.h5'` into the variable `loaded_model`. Now, `loaded_model` contains the trained model architecture and weights.
+
+11. ```python
+    predictions = loaded_model.predict(x)
+    ```
+    - Uses the loaded model (`loaded_model`) to make predictions on the preprocessed image array `x` using the `predict` method. This line generates the predicted probabilities for each class.
+
+12. ```python
+    labels = {0: 'Healthy', 1: 'Powdery', 2: 'Rust'}
+    ```
+    - Defines a dictionary `labels` that maps the class indices (0, 1, 2) to their corresponding class labels ('Healthy', 'Powdery', 'Rust'). This mapping is used to interpret the model's predictions.
+
+13. ```python
+    predicted_label = labels[np.argmax(predictions)]
+    ```
+    - Determines the predicted class label by finding the index with the highest predicted probability using `np.argmax(predictions)`, and then retrieves the corresponding label from the `labels` dictionary.
+
+14. ```python
+    print(predicted_label)
+    ```
+    - Prints the predicted class label, indicating the disease type predicted by the model based on the input image.
+
+This code snippet essentially demonstrates the process of preprocessing an image, loading a trained model, making predictions using the model, and interpreting the predictions to determine the predicted class label.
