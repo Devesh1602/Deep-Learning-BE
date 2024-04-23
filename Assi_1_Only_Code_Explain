@@ -59,6 +59,21 @@ plt.legend(['Train', 'Validation'], loc='upper left')
 plt.show()
 
 =========================================Explanation==================================================================
+CRIM - per capita crime rate by town
+ZN - proportion of residential land zoned for lots over 25,000 sq.ft.
+INDUS - proportion of non-retail business acres per town.
+CHAS - Charles River dummy variable (1 if tract bounds river; 0 otherwise)
+NOX - nitric oxides concentration (parts per 10 million)
+RM - average number of rooms per dwelling
+AGE - proportion of owner-occupied units built prior to 1940
+DIS - weighted distances to five Boston employment centres
+RAD - index of accessibility to radial highways
+TAX - full-value property-tax rate per $10,000
+PTRATIO - pupil-teacher ratio by town
+B - 1000(Bk - 0.63)^2 where Bk is the proportion of blacks by town
+LSTAT - % lower status of the population
+MEDV - Median value of owner-occupied homes in $1000's
+
 pandas (pd): Pandas is a powerful library for data manipulation and analysis
 numpy (np): NumPy is a fundamental package for numerical computing with Python.
 tensorflow (tf): TensorFlow is an open-source deep learning framework developed by Google. It provides a comprehensive ecosystem of tools,
@@ -83,6 +98,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 These lines import the train_test_split function for splitting the dataset into training and testing sets, and the MinMaxScaler class 
 for scaling the features to a specified range.
+MinMaxScaler scales data to a specific range, preserving the original distribution shape. It is suitable for non-Gaussian distributed data and algorithms that require bounded input features.
+ALTERNATIVE:- StandardScaler standardizes data to have a mean of 0 and a standard deviation of 1, making it suitable for normally distributed data and algorithms that assume standardized input features.
+MinMaxScaler can be sensitive to outliers, while StandardScaler is more robust in handling outliers due to its use of mean and standard deviation.
 
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3)
 This line splits the features (x) and target (y) into training and testing sets.
@@ -109,42 +127,87 @@ It returns a tuple representing the dimensions of the array. Since x_train_scale
 its shape would be (n,), where n is the number of features.
 
 Model Initialization:
-python
-Copy code
+
+from tensorflow.keras.models import Sequential
+
+from tensorflow.keras.layers import * :-
+Keras is an open-source deep learning library written in Python that provides a high-level interface for building and training neural network models.
+
+Dense: The Dense layer is the most common type of layer in a neural network. It represents a fully connected layer where each neuron is connected to every neuron in the previous layer. You can specify the number of units (neurons) and the activation function for each Dense layer.
+
+Dropout: The Dropout layer is used for regularization and preventing overfitting. It randomly drops a fraction of the input units during training, which helps in reducing co-dependency between neurons and improves generalization.
+
+Conv2D: The Conv2D layer is used in convolutional neural networks (CNNs) for 2D spatial convolution. It applies a convolution operation to the input data, which is particularly useful for processing images and extracting spatial features.
+
+MaxPooling2D: The MaxPooling2D layer is used in CNNs for spatial downsampling. It reduces the spatial dimensions of the input by taking the maximum value within a window (pool size). Max pooling helps in reducing computational complexity and focusing on important features.
+
+Flatten: The Flatten layer is used to flatten the input data into a 1D array. It is often used as an intermediate layer between convolutional layers and fully connected layers in CNN architectures.
+
+Activation: The Activation layer applies an activation function element-wise to the input. Common activation functions include ReLU (Rectified Linear Unit), sigmoid, tanh, and softmax. Activation functions introduce non-linearity into the network, allowing it to learn complex patterns.
+
+Input: The Input layer is used to define the input shape of the data. It is typically used when creating models with multiple inputs or when you want to explicitly specify the input shape.
+
+
 model = Sequential()
-This line initializes a new sequential model. The sequential model is a linear stack of layers, where you can add layers one by one.
+Sequential: This is a class in Keras that allows you to create a linear stack of layers for building neural network models. 
+A Sequential model is created by adding layers one by one, from input to output.
+
 Adding Dense Layers:
-python
-Copy code
+
 model.add(Dense(128, activation='relu', input_shape=(x_train_scaled[0].shape)))
 model.add(Dense(64, activation='relu'))
 model.add(Dense(32, activation='relu'))
 model.add(Dense(16, activation='relu'))
 These lines add fully connected (dense) layers to the model.
-The first layer (Dense(128, activation='relu', input_shape=(x_train_scaled[0].shape))) specifies 128 units with ReLU activation function and expects an input shape equal to the shape of the first sample in the scaled training data (x_train_scaled[0].shape).
-Subsequent layers have fewer units, going from 64 to 32 to 16, all using ReLU activation function.
+
+x_train_scaled likely refers to a scaled or normalized version of the training data used for training the neural network.
+x_train_scaled[0] refers to the first sample or instance in the training data.
+x_train_scaled[0].shape gives the shape (dimensionality) of the first sample in the scaled 
+
+input_shape=(x_train_scaled[0].shape) sets the input shape of the first layer of the neural network to be equal to the 
+shape of the first sample in the scaled training data
+
+The first layer (Dense(128, activation='relu', input_shape=(x_train_scaled[0].shape))) specifies 128 units with ReLU activation function
+and expects an input shape equal to the shape of the first sample in the scaled training data (x_train_scaled[0].shape).
+Subsequent layers have fewer units, going from 64 to 32 to 16, all using the ReLU activation function.
+
 Output Layer:
-python
-Copy code
+
 model.add(Dense(1))
 This line adds the output layer with a single unit, which is typical for regression tasks where you're predicting a single continuous value (e.g., house prices, stock prices).
 Since there's no activation function specified, this is a linear layer, meaning it outputs raw predictions without any non-linear transformation.
+
 Compilation:
-python
-Copy code
+
 model.compile(optimizer='adam', loss='mse', metrics=['mae'])
 This line compiles the model, configuring it for training.
-optimizer='adam' specifies the Adam optimization algorithm, which is commonly used for training neural networks.
+optimizer='adam' specifies the Adam optimization algorithm, which is commonly used for training neural networks.The iterative optimization algorithm used to minimize the loss function during the training of neural network.
+Loss function: a method of evaluating how well your algorithm models your dataset.
 loss='mse' specifies the mean squared error loss function, which is suitable for regression tasks.
 metrics=['mae'] specifies that the mean absolute error (MAE) metric should be computed during training, in addition to the loss.
 
+history=model.fit(x=x_train_scaled,y=y_train,batch_size=1,verbose=1,epochs=100,validation_data=(x_test_scaled,y_test))
+
+model.fit(): This function is used to train a neural network model using the specified training data and training configuration.
 x=x_train_scaled: The input features for training, which have been scaled.
 y=y_train: The target values for training.
 batch_size=1: The number of samples per gradient update. In this case, the batch size is set to 1, meaning that each training sample is processed individually (also known as stochastic gradient descent).
-verbose=1: Verbosity mode. It specifies how much information you want to see during training. Here, verbose=1 means that progress bars will be displayed during training.
+verbose=1: (display of training progress and metrics) Verbosity mode. It specifies how much information you want to see during training. Here, verbose=1 means that progress bars will be displayed during training.
 epochs=100: The number of epochs (iterations over the entire training dataset) to train the model.
 validation_data=(x_test_scaled, y_test): Optional validation data to evaluate the model's performance at the end of each epoch. Here, the validation data consists of the scaled testing features (x_test_scaled) and 
 the corresponding testing target values (y_test)
+
+test_input = [[0.00154995, 0.        , 0.28962963, 0.        , 0.27777778,
+       0.56936665, 0.70442842, 0.15699879, 0.17391304, 0.3759542 ,
+       0.88297872, 0.99665297, 0.16851064]]
+print("actual output:",24.0)
+print("predicted output:",model.predict(test_input))
+
+1)The input data represents a single sample with 13 features (feature values normalized or scaled between 0 and 1). 
+These features could include various aspects such as crime rate, number of rooms, proximity to highways, etc., depending on the specific features used in the model.
+2)The goal of the code is to demonstrate how the trained model can predict the housing price (output) based on the given input features.
+3)The input data is taken to showcase the model's predictive capability. By providing the model with a sample input, we can observe how well it predicts the corresponding output compared to the actual value.
+
 
 plt.plot(history.history['loss']): This line plots the training loss (mean squared error) over epochs. The training loss is obtained from the history object returned by the model.fit() method.
 plt.plot(history.history['val_loss']): This line plots the validation loss (mean squared error) over epochs. The validation loss is also obtained from the history object.
