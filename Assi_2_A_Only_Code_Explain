@@ -1,0 +1,164 @@
+import tensorflow as tf
+from keras.models import Sequential
+from keras.layers import Dense
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+import pandas as pd
+
+data_path = 'https://github.com/Sahil-Naik/BE-Programming/raw/main/LP-V(DL)/Assignment-2/Part-1/letter-recognition.data'
+columns = ['letter'] + [f'feature_{i}' for i in range(16)]
+df = pd.read_csv(data_path, names=columns)
+
+label_encoder = LabelEncoder()
+df['target'] = label_encoder.fit_transform(df['letter'])
+X = df.drop(['letter', 'target'], axis=1)
+y = df['target']
+
+# Split the dataset
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Build the deep neural network model
+model = Sequential()
+model.add(Dense(128, activation='relu', input_shape=(16,)))
+model.add(Dense(64, activation='relu'))
+model.add(Dense(26, activation='softmax'))  # 26 classes for letters
+
+# Compile the model
+model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+
+# Train the model
+model.fit(X_train, y_train, epochs=10, batch_size=32, validation_data=(X_test, y_test))
+
+# Evaluate the model
+test_loss, test_accuracy = model.evaluate(X_test, y_test)
+print(f'Test Accuracy: {test_accuracy}')
+
+# Given data
+import numpy as np
+new_data = np.array([4, 7, 5, 5, 4, 6, 7, 3, 7, 11, 8, 9, 3, 8, 4, 8]).reshape(1, -1)
+
+# Use the model to make predictions
+predictions = model.predict(new_data)
+print(predictions)
+# Display the predictions
+predicted_class = np.argmax(predictions)
+print(f'The predicted class is: {predicted_class}')
+
+class_mapping = {
+    0: 'A', 1: 'B', 2: 'C', 3: 'D', 4: 'E', 5: 'F', 6: 'G', 7: 'H', 8: 'I', 9: 'J',
+    10: 'K', 11: 'L', 12: 'M', 13: 'N', 14: 'O', 15: 'P', 16: 'Q', 17: 'R', 18: 'S', 19: 'T',
+    20: 'U', 21: 'V', 22: 'W', 23: 'X', 24: 'Y', 25: 'Z'
+}
+
+# Display the predicted class using the mapping
+predicted_letter = class_mapping[predicted_class]
+print(f'The predicted class is: {predicted_class}, which corresponds to the letter: {predicted_letter}')
+
+=======================================================Explanation========================================================================
+TensorFlow: TensorFlow is an open-source deep learning framework developed by Google. It provides APIs for building and training machine learning models, including neural networks.
+Keras: Keras is a high-level neural networks API, originally developed as part of the TensorFlow project. It provides an easy-to-use interface for building and training neural networks,
+allowing users to quickly prototype and experiment with different architectures.
+scikit-learn (sklearn): Scikit-learn is a popular machine learning library in Python, providing tools for data preprocessing, model selection, and evaluation.
+pandas: Pandas is a powerful library for data manipulation and analysis. It provides data structures like DataFrame, which is useful for handling structured data.
+
+columns = ['letter'] + [f'feature_{i}' for i in range(16)]
+This line defines the column names for the DataFrame. It creates a list where the first element is 'letter', and the remaining elements are strings of the form 'feature_i', where 
+i ranges from 0 to 15. The column names are constructed using list comprehension and formatted strings (f'...').
+
+df = pd.read_csv(data_path, names=columns)
+This line reads the CSV file located at data_path into a DataFrame (df) using the read_csv() function from pandas.
+The names parameter specifies the column names to use. By providing the columns list created earlier, you're assigning the predefined column names to the DataFrame
+
+label_encoder = LabelEncoder()
+This line initializes a LabelEncoder object, which is used to encode categorical labels into numerical values.
+
+df['target'] = label_encoder.fit_transform(df['letter'])
+This line encodes the labels in the 'letter' column of the DataFrame df into numerical values using the fit_transform() method of the LabelEncoder object. The encoded labels are then assigned to a new column named 'target' in the DataFrame.
+
+X = df.drop(['letter', 'target'], axis=1)
+y = df['target']
+These lines split the DataFrame df into features (X) and the target variable (y).
+X contains all columns except for 'letter' and 'target', achieved by using the drop() method with axis=1 to drop the specified columns.
+y contains only the 'target' column, which represents the encoded labels.
+
+
+model = Sequential()
+This line initializes a new sequential model, which is a linear stack of layers.
+
+model.add(Dense(128, activation='relu', input_shape=(16,)))
+model.add(Dense(64, activation='relu'))
+These lines add fully connected (dense) layers to the model.
+The first layer (Dense(128, activation='relu', input_shape=(16,))) consists of 128 units with ReLU activation function. 
+It also specifies the input shape as (16,), indicating that the input data has 16 features.
+The second layer (Dense(64, activation='relu')) consists of 64 units with ReLU activation function.
+
+model.add(Dense(26, activation='softmax'))
+This line adds the output layer with 26 units (one for each letter of the alphabet), using the softmax activation function.
+Softmax activation is commonly used in multi-class classification problems to output probabilities for each class. 
+It ensures that the sum of probabilities for all classes is equal to 1.
+
+optimizer='adam': This specifies the optimizer algorithm to use during training. In this case, 'adam' refers to the Adam optimizer, 
+which is an adaptive learning rate optimization algorithm that's well-suited for training neural networks.
+
+loss='sparse_categorical_crossentropy': This specifies the loss function to use during training. 
+The 'sparse_categorical_crossentropy' loss function is commonly used for multi-class classification tasks where the target labels are integers (sparse representation). 
+It calculates the cross-entropy loss between the predicted probability distribution and the true label distribution.
+
+metrics=['accuracy']: This specifies the evaluation metric(s) to monitor during training. Here, 'accuracy' is chosen as the metric, 
+which measures the fraction of correctly classified samples.
+
+model.fit(X_train, y_train, epochs=10, batch_size=32, validation_data=(X_test, y_test))
+This line trains the model using the training data (X_train and y_train) for a specified number of epochs (epochs=10) and with a batch size of 32 samples (batch_size=32).
+The validation_data parameter specifies the testing data (X_test and y_test) to use for validation during training. 
+The model's performance on the validation data will be monitored at the end of each epoch.
+During training, the model's weights and biases will be adjusted to minimize the loss function specified during compilation (sparse_categorical_crossentropy), 
+and the accuracy metric will be computed for both the training and validation data.
+
+test_loss, test_accuracy = model.evaluate(X_test, y_test)
+print(f'Test Accuracy: {test_accuracy}')
+After training completes, this code evaluates the trained model's performance on the testing data (X_test and y_test).
+The evaluate() method computes the loss and any specified metrics (in this case, accuracy) on the testing data.
+The test accuracy is then printed to the console.
+
+new_data = np.array([4, 7, 5, 5, 4, 6, 7, 3, 7, 11, 8, 9, 3, 8, 4, 8])
+This line creates a NumPy array with the specified list of values. Each value represents a feature of the data point.
+
+new_data = new_data.reshape(1, -1)
+This line reshapes the array into a 2-dimensional array with one row and an unknown number of columns. 
+The -1 in the reshape function is a placeholder that tells NumPy to automatically calculate the number of columns based on the size of the original array. In this case, 
+it ensures that the array has one row and 16 columns.
+
+Making Predictions:
+predictions = model.predict(new_data)
+This line uses the predict() method of the model to generate predictions for the new data new_data. 
+The predict() method takes the new data as input and returns the predicted class probabilities for each class label.
+
+Displaying Predictions:
+print(predictions)
+This line prints the predicted class probabilities for each class label. Each value in the array represents the probability of the corresponding class label.
+Determining Predicted Class:
+
+predicted_class = np.argmax(predictions)
+This line uses NumPy's argmax() function to determine the index of the class label with the highest probability (i.e., the predicted class). 
+It returns the index of the maximum value in the predictions array.
+Printing Predicted Class:
+
+print(f'The predicted class is: {predicted_class}')
+This line prints the predicted class label determined from the highest probability in the predictions array.
+
+It seems that class_mapping is a dictionary that maps class indices to their corresponding letter labels. 
+With this dictionary, you can map the predicted class index to its corresponding letter label.
+
+predicted_letter = class_mapping[predicted_class]
+This line retrieves the letter label corresponding to the predicted class index (predicted_class) from the class_mapping dictionary. 
+It maps the predicted class index to its corresponding letter label.
+
+print(f'The predicted class is: {predicted_class}, which corresponds to the letter: {predicted_letter}')
+This line prints the predicted class index and its corresponding letter label. It provides a human-readable interpretation of the model's prediction.
+
+
+
+
+
+
+
