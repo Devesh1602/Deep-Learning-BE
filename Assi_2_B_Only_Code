@@ -1,0 +1,63 @@
+import numpy as np
+from tensorflow.keras.datasets import imdb
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, LSTM, Embedding, SpatialDropout1D
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.preprocessing.text import Tokenizer
+
+# Load the IMDB dataset
+max_features = 5000
+maxlen = 100
+(X_train, y_train), (X_test, y_test) = imdb.load_data(num_words=max_features)
+
+# Preprocess the data
+X_train = pad_sequences(X_train, maxlen=maxlen)
+X_test = pad_sequences(X_test, maxlen=maxlen)
+
+# Convert sequences back into text
+reverse_word_index = dict([(value, key) for (key, value) in imdb.get_word_index().items()])
+def decode_review(text):
+    return ' '.join([reverse_word_index.get(i - 3, '?') for i in text])
+
+X_train_text = [decode_review(x) for x in X_train]
+X_test_text = [decode_review(x) for x in X_test]
+
+# Create and fit tokenizer
+tokenizer = Tokenizer(num_words=max_features)
+tokenizer.fit_on_texts(X_train_text)
+
+# Preprocess the data
+X_train = pad_sequences(tokenizer.texts_to_sequences(X_train_text), maxlen=maxlen)
+X_test = pad_sequences(tokenizer.texts_to_sequences(X_test_text), maxlen=maxlen)
+
+# Build the model
+model = Sequential()
+model.add(Embedding(max_features, 128, input_length=maxlen))
+# model.add(SpatialDropout1D(0.2))
+model.add(LSTM(64, dropout=0.2, recurrent_dropout=0.2))
+model.add(Dense(1, activation='sigmoid'))
+
+model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=5, batch_size=32)
+
+score, acc = model.evaluate(X_test, y_test, batch_size=32)
+print("Test accuracy:", acc)
+
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+def preprocess_input(user_input):
+    sequences = tokenizer.texts_to_sequences(user_input)
+    return pad_sequences(sequences, maxlen=maxlen)
+
+# Function to predict sentiment
+def predict_sentiment(review):
+    review = preprocess_input([review])
+    prediction = model.predict(review)[0][0]
+    if prediction >= 0.5:
+        return "Positive"
+    else:
+        return "Negative"
+
+user_review = input("Enter your movie review (or type 'quit' to exit): ")
+sentiment = predict_sentiment(user_review)
+print("Predicted sentiment:", sentiment)
