@@ -5,10 +5,11 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 import pandas as pd
 
-data_path = 'https://github.com/Sahil-Naik/BE-Programming/raw/main/LP-V(DL)/Assignment-2/Part-1/letter-recognition.data'
+data_path = 'letter-recognition.data'
 columns = ['letter'] + [f'feature_{i}' for i in range(16)]
 df = pd.read_csv(data_path, names=columns)
 
+# Preprocess the data
 label_encoder = LabelEncoder()
 df['target'] = label_encoder.fit_transform(df['letter'])
 X = df.drop(['letter', 'target'], axis=1)
@@ -16,6 +17,10 @@ y = df['target']
 
 # Split the dataset
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+df.head(10)
+
+df.shape
 
 # Build the deep neural network model
 model = Sequential()
@@ -26,8 +31,13 @@ model.add(Dense(26, activation='softmax'))  # 26 classes for letters
 # Compile the model
 model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 
+import time
+start_time=time.time()
+
 # Train the model
 model.fit(X_train, y_train, epochs=10, batch_size=32, validation_data=(X_test, y_test))
+train_time = time.time() - start_time
+print(f"Training time-{train_time}seconds")
 
 # Evaluate the model
 test_loss, test_accuracy = model.evaluate(X_test, y_test)
@@ -73,7 +83,8 @@ label_encoder = LabelEncoder()
 This line initializes a LabelEncoder object, which is used to encode categorical labels into numerical values.
 
 df['target'] = label_encoder.fit_transform(df['letter'])
-This line encodes the labels in the 'letter' column of the DataFrame df into numerical values using the fit_transform() method of the LabelEncoder object. The encoded labels are then assigned to a new column named 'target' in the DataFrame.
+This line encodes the labels in the 'letter' column of the DataFrame df into numerical values using the fit_transform() method of the LabelEncoder object. 
+The encoded labels are then assigned to a new column named 'target' in the DataFrame.
 
 X = df.drop(['letter', 'target'], axis=1)
 y = df['target']
@@ -81,6 +92,8 @@ These lines split the DataFrame df into features (X) and the target variable (y)
 X contains all columns except for 'letter' and 'target', achieved by using the drop() method with axis=1 to drop the specified columns.
 y contains only the 'target' column, which represents the encoded labels.
 
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+The random_state parameter ensures that the data split remains consistent across different runs of the code.
 
 model = Sequential()
 This line initializes a new sequential model, which is a linear stack of layers.
@@ -99,6 +112,7 @@ It ensures that the sum of probabilities for all classes is equal to 1.
 
 optimizer='adam': This specifies the optimizer algorithm to use during training. In this case, 'adam' refers to the Adam optimizer, 
 which is an adaptive learning rate optimization algorithm that's well-suited for training neural networks.
+(optimization algorithm used during the training process to minimize the loss function and update the model's parameters (weights and biases).)
 
 loss='sparse_categorical_crossentropy': This specifies the loss function to use during training. 
 The 'sparse_categorical_crossentropy' loss function is commonly used for multi-class classification tasks where the target labels are integers (sparse representation). 
@@ -116,7 +130,7 @@ and the accuracy metric will be computed for both the training and validation da
 
 test_loss, test_accuracy = model.evaluate(X_test, y_test)
 print(f'Test Accuracy: {test_accuracy}')
-After training completes, this code evaluates the trained model's performance on the testing data (X_test and y_test).
+After training is completed, this code evaluates the trained model's performance on the testing data (X_test and y_test).
 The evaluate() method computes the loss and any specified metrics (in this case, accuracy) on the testing data.
 The test accuracy is then printed to the console.
 
@@ -148,6 +162,12 @@ This line prints the predicted class label determined from the highest probabili
 
 It seems that class_mapping is a dictionary that maps class indices to their corresponding letter labels. 
 With this dictionary, you can map the predicted class index to its corresponding letter label.
+
+class_mapping = {
+    0: 'A', 1: 'B', 2: 'C', 3: 'D', 4: 'E', 5: 'F', 6: 'G', 7: 'H', 8: 'I', 9: 'J',
+    10: 'K', 11: 'L', 12: 'M', 13: 'N', 14: 'O', 15: 'P', 16: 'Q', 17: 'R', 18: 'S', 19: 'T',
+    20: 'U', 21: 'V', 22: 'W', 23: 'X', 24: 'Y', 25: 'Z'
+}
 
 predicted_letter = class_mapping[predicted_class]
 This line retrieves the letter label corresponding to the predicted class index (predicted_class) from the class_mapping dictionary. 
