@@ -61,3 +61,160 @@ def predict_sentiment(review):
 user_review = input("Enter your movie review (or type 'quit' to exit): ")
 sentiment = predict_sentiment(user_review)
 print("Predicted sentiment:", sentiment)
+
+=======================================================Explanation=============================================================================
+
+import numpy as np
+from tensorflow.keras.datasets import imdb
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, LSTM, Embedding, SpatialDropout1D
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.preprocessing.text import Tokenizer
+
+import numpy as np: Imports the NumPy library, which is commonly used for numerical computations in Python. It provides support for multi-dimensional arrays and mathematical functions.
+
+from tensorflow.keras.datasets import imdb: Imports the IMDB dataset module from the Keras library. This dataset contains movie reviews along with their sentiment labels (positive or negative).
+
+
+from tensorflow.keras.models import Sequential: Imports the Sequential model from Keras. The Sequential model is a linear stack of layers used for building deep learning models layer by layer.
+
+from tensorflow.keras.layers import Dense, LSTM, Embedding, SpatialDropout1D: Imports specific layers from Keras that will be used to build the model:
+Dense: Fully connected layer used for classification or regression tasks.
+LSTM: Long Short-Term Memory layer, a type of recurrent neural network (RNN) layer that handles sequences and time series data.
+Embedding: Layer used for word embeddings, which maps words or tokens to dense vectors in a continuous space.
+SpatialDropout1D: Dropout layer for regularization, specifically designed for 1D spatial data like sequences.
+
+from tensorflow.keras.preprocessing.sequence import pad_sequences: Imports the pad_sequences function from Keras, which is used to pad sequences to a fixed length.
+
+from tensorflow.keras.preprocessing.text import Tokenizer: Imports the Tokenizer class from Keras, which is used to tokenize text data into sequences of integers.
+
+max_features = 5000
+maxlen = 100
+(X_train, y_train), (X_test, y_test) = imdb.load_data(num_words=max_features)
+
+max_features = 5000: Specifies the maximum number of unique words to keep in the vocabulary. Only the most frequent max_features words will be kept in the dataset.
+maxlen = 100: Specifies the maximum length of each sequence (review). Sequences longer than maxlen will be truncated, and shorter sequences will be padded.
+(X_train, y_train), (X_test, y_test) = imdb.load_data(num_words=max_features): Loads the IMDB dataset, splitting it into training and testing sets (X_train, y_train, X_test, y_test). The num_words parameter limits the dataset to the most frequent max_features words.
+
+X_train = pad_sequences(X_train, maxlen=maxlen)
+X_test = pad_sequences(X_test, maxlen=maxlen)
+
+(pad_sequences used to ensure that all sequences in a list have the same length. )
+X_train = pad_sequences(X_train, maxlen=maxlen): Pads/truncates the training sequences (X_train) to a fixed length of maxlen using the pad_sequences function.
+X_test = pad_sequences(X_test, maxlen=maxlen): Pads/truncates the testing sequences (X_test) to a fixed length of maxlen using the pad_sequences function.
+
+reverse_word_index = dict([(value, key) for (key, value) in imdb.get_word_index().items()])
+def decode_review(text):
+    return ' '.join([reverse_word_index.get(i - 3, '?') for i in text])
+
+X_train_text = [decode_review(x) for x in X_train]
+X_test_text = [decode_review(x) for x in X_test]
+
+reverse_word_index = dict([(value, key) for (key, value) in imdb.get_word_index().items()]): Creates a reverse word index dictionary mapping integer indices to words.
+Reverse Word Index Dictionary (reverse_word_index):
+In NLP tasks, words are often converted into numerical tokens for processing by machine learning models.
+The imdb.get_word_index() function returns a dictionary mapping words to their integer indices in the IMDB dataset vocabulary.
+The reverse word index dictionary reverses this mapping by creating a dictionary that maps integer indices back to their respective words. This is essential for decoding numerical sequences back into text.
+
+def decode_review(text):: Defines a function decode_review that takes a sequence of integers (text) and converts it back to text using the reverse word index.
+The decode_review function takes a sequence of integers (representing words) and converts it back into human-readable text using the reverse word index.
+It uses list comprehension to iterate over each integer in the sequence (text) and retrieve the corresponding word from the reverse_word_index. If the integer is not found in the dictionary (e.g., indices 0, 1, 2 are reserved for padding, start of sequence, and unknown words), it replaces it with a question mark '?'.
+Finally, it joins these words into a single string, effectively decoding the numerical sequence into text.
+
+X_train_text = [decode_review(x) for x in X_train]: Converts the training sequences back to text using the decode_review function.
+X_test_text = [decode_review(x) for x in X_test]: Converts the testing sequences back to text using the decode_review function.
+After tokenizing and padding/truncating the sequences during preprocessing, the original text information is lost as the data becomes numerical sequences.
+By applying the decode_review function to each sequence in X_train and X_test, we reverse the numerical representation back into text form.
+This is important for tasks like sentiment analysis or text classification, where the model predictions need to be interpreted in terms of human-understandable language.
+
+tokenizer = Tokenizer(num_words=max_features)
+tokenizer.fit_on_texts(X_train_text)
+tokenizer = Tokenizer(num_words=max_features): Initializes a Tokenizer object with a maximum vocabulary size of max_features.
+tokenizer.fit_on_texts(X_train_text): Updates the tokenizer's internal vocabulary based on the training text (X_train_text).
+
+X_train = pad_sequences(tokenizer.texts_to_sequences(X_train_text), maxlen=maxlen)
+X_test = pad_sequences(tokenizer.texts_to_sequences(X_test_text), maxlen=maxlen)
+X_train = pad_sequences(tokenizer.texts_to_sequences(X_train_text), maxlen=maxlen): Tokenizes and pads/truncates the training text sequences using the fitted tokenizer.
+X_test = pad_sequences(tokenizer.texts_to_sequences(X_test_text), maxlen=maxlen): Tokenizes and pads/truncates the testing text sequences using the fitted tokenizer.
+
+These preprocessing steps using the Tokenizer and pad_sequences functions are essential for preparing text data for machine learning models, particularly neural networks. Tokenization converts text into numerical sequences, and padding ensures uniform sequence lengths, both of which are crucial for training and using models effectively on text data.
+
+
+1. **Sequential Model Initialization:**
+   - `model = Sequential()`: Initializes a Sequential model, which is a linear stack of layers. In a Sequential model, layers are added one by one in sequence.
+
+2. **Embedding Layer Addition:**
+   - `model.add(Embedding(max_features, 128, input_length=maxlen))`: Adds an Embedding layer to the model.
+   - Parameters:
+     - `max_features`: Specifies the size of the vocabulary, i.e., the maximum number of words that can be represented.
+     - `128`: Represents the dimensionality of the embedding vectors. Each word will be represented as a 128-dimensional vector in the embedding space.
+     - `input_length=maxlen`: Specifies the length of input sequences. All input sequences will be padded/truncated to this length.
+   - The Embedding layer is commonly used in NLP tasks to map words or tokens to dense vectors in a continuous space. It helps capture semantic relationships between words.
+
+3. **LSTM Layer Addition:**
+   - `model.add(LSTM(64, dropout=0.2, recurrent_dropout=0.2))`: Adds a Long Short-Term Memory (LSTM) layer to the model.
+   - Parameters:
+     - `64`: Specifies the number of units (or cells) in the LSTM layer. More units can capture more complex patterns but also increase model complexity.
+     - `dropout=0.2`: Sets the dropout rate for input units, where 20% of input units will be randomly set to 0 during training to prevent overfitting.
+     - `recurrent_dropout=0.2`: Sets the dropout rate for recurrent units (memory cells) in the LSTM, similarly preventing overfitting in the recurrent connections.
+   - LSTM is a type of recurrent neural network (RNN) that is well-suited for sequence data and can capture long-term dependencies.
+
+4. **Dense Output Layer Addition:**
+   - `model.add(Dense(1, activation='sigmoid'))`: Adds a Dense layer as the output layer with 1 unit (binary classification task) and a sigmoid activation function.
+   - The sigmoid activation function is used for binary classification tasks, where the output is interpreted as the probability of the positive class.
+
+5. **Model Compilation:**
+   - `model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])`: Compiles the model for training.
+   - Parameters:
+     - `loss='binary_crossentropy'`: Specifies the loss function for binary classification tasks. Binary cross-entropy is commonly used for such tasks.
+     - `optimizer='adam'`: Specifies the optimizer algorithm. Adam is an efficient variant of stochastic gradient descent (SGD) and is widely used due to its adaptive learning rate.
+     - `metrics=['accuracy']`: Defines the evaluation metric during training. Here, it monitors the accuracy of the model.
+
+In summary, the code initializes a Sequential model and adds an Embedding layer, an LSTM layer, and a Dense output layer. It then compiles the model with appropriate settings for binary classification, setting up the model for training and evaluation on text data.
+
+model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=5, batch_size=32)
+model.fit(...): Trains the model on the training data (X_train, y_train) for 5 epochs with a batch size of 32, validating on the test data (X_test, y_test).
+
+score, acc = model.evaluate(X_test, y_test, batch_size=32)
+print("Test accuracy:", acc)
+model.evaluate(...): Evaluates the trained model on the test data and computes the test accuracy.
+
+Importing Libraries:
+
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+Imports the pad_sequences function from Keras, which is used for padding/truncating sequences to a specified length.
+
+Defining preprocess_input Function:
+
+def preprocess_input(user_input):
+    sequences = tokenizer.texts_to_sequences(user_input)
+    return pad_sequences(sequences, maxlen=maxlen)
+preprocess_input is a function that takes user input (a list of text reviews) and preprocesses it for model prediction.
+tokenizer.texts_to_sequences(user_input): Tokenizes the input text using the previously fitted tokenizer, converting words to numerical sequences.
+pad_sequences(sequences, maxlen=maxlen): Pads/truncates the tokenized sequences to a maximum length (maxlen) to ensure uniform input size for the model.
+
+Defining predict_sentiment Function:
+
+def predict_sentiment(review):
+    review = preprocess_input([review])
+    prediction = model.predict(review)[0][0]
+    if prediction >= 0.5:
+        return "Positive"
+    else:
+        return "Negative"
+predict_sentiment is a function that predicts the sentiment (positive or negative) of a given movie review.
+review = preprocess_input([review]): Preprocesses the input review using the preprocess_input function defined earlier, converting it into a format suitable for model prediction.
+model.predict(review)[0][0]: Uses the trained model (model) to predict the sentiment of the preprocessed review. The [0][0] indexing is used to access the predicted probability of the positive class (as it's a binary classification task).
+If the predicted probability is greater than or equal to 0.5, it returns "Positive"; otherwise, it returns "Negative".
+
+User Interaction and Prediction:
+
+user_review = input("Enter your movie review (or type 'quit' to exit): ")
+sentiment = predict_sentiment(user_review)
+print("Predicted sentiment:", sentiment)
+
+Prompts the user to enter a movie review.
+Calls the predict_sentiment function to predict the sentiment of the user's review.
+Prints the predicted sentiment ("Positive" or "Negative") based on the model's prediction.
+
+In summary, the code defines functions to preprocess user input, predict sentiment using a trained model, and interactively collect user reviews for sentiment analysis. It demonstrates a simple end-to-end pipeline for sentiment prediction on textual data.
