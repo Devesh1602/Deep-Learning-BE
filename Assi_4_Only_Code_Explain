@@ -1,0 +1,239 @@
+Timeseries analysis and prediction system
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import MinMaxScaler
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense, Dropout
+from sklearn.metrics import mean_squared_error
+
+data = pd.read_csv('https://github.com/Sahil-Naik/BE-Programming/raw/main/LP-V(DL)/Assignment-4/GOOG.csv')
+
+data_copy = data.copy()
+data_copy.dropna(inplace=True)
+selected_features = ['Open', 'High', 'Low', 'Close', 'Adj Close', 'Volume']
+data_copy = data_copy[selected_features]
+scaler = MinMaxScaler()
+scaled_data = scaler.fit_transform(data_copy)
+
+df = pd.DataFrame(data)
+df.head()
+
+df.iloc[3496]
+
+missing_values = df.isnull().sum()
+print("Missing Values:\n", missing_values)
+
+print("Dataset shape:", df.shape)
+print("Columns:", df.columns)
+print("Info:\n", df.info())
+print("Summary statistics:\n", df.describe())
+
+df['Date'] = pd.to_datetime(df['Date'], utc=True)
+df.head()
+
+df.shape
+
+def prepare_data(data, time_steps):
+    X, y = [], []
+    for i in range(len(data) - time_steps):
+        X.append(data[i:(i + time_steps)])
+        y.append(data[i + time_steps])
+    return np.array(X), np.array(y)
+time_steps = 60  
+X, y = prepare_data(scaled_data, time_steps)
+
+len(y)
+
+split_ratio = 0.8  # Train-test split ratio
+split_index = int(split_ratio * len(X))
+X_train, X_test = X[:split_index], X[split_index:]
+y_train, y_test = y[:split_index], y[split_index:]
+
+df.iloc[3496]
+
+model = Sequential([
+    LSTM(units=100, return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])),
+    Dropout(0.2),
+    LSTM(units=100, return_sequences=True),
+    Dropout(0.2),
+    LSTM(units=100),
+    Dropout(0.2),
+    Dense(units=len(selected_features))
+])
+# Compile model
+model.compile(optimizer='adam', loss='mean_squared_error',metrics=['accuracy'])
+# Display model
+print(model.summary())
+
+epochs = 20 
+history = model.fit(X_train, y_train, epochs=epochs, batch_size=32, verbose=1)
+
+
+
+loss = history.history['loss']
+
+epochs = range(len(loss))
+
+plt.plot(epochs, loss, 'r', label='Training loss')
+
+plt.title('Training loss', size=15, weight='bold')
+plt.legend(loc=0)
+plt.figure()
+
+plt.show()
+
+train_loss = model.evaluate(X_train, y_train, verbose=0)
+test_loss = model.evaluate(X_test, y_test, verbose=0)
+
+print(f"Train Loss: {train_loss}")
+print(f"Test Loss: {test_loss}")
+
+
+split_index=3496
+df.iloc[3496]
+
+predictions = model.predict(X_test)
+predictions = scaler.inverse_transform(predictions)
+y_test_inverse = scaler.inverse_transform(y_test)
+
+plt.figure(figsize=(10, 6))
+plt.plot(predictions[:,4], label='Predicted Close Price', color='r')
+plt.plot(y_test_inverse[:,4], label='Actual Close Price', color='b')
+plt.title('Google Stock Price Prediction 2018 to 2022')
+plt.xlabel('Time')
+plt.ylabel('Price')
+plt.legend()
+plt.show()
+
+from sklearn.metrics import mean_absolute_error, mean_squared_error
+import numpy as np
+
+# Assuming predictions and y_test_inverse contain the predicted and actual stock prices, respectively
+
+# Calculate Mean Absolute Error (MAE)
+mae = mean_absolute_error(y_test_inverse[:,4],predictions[:,4])
+
+print(f'Mean Absolute Error (MAE): {mae}')
+
+----------------------------------------------Explanation----------------------------------------------------------------------------------------
+p
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import MinMaxScaler
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense, Dropout
+from sklearn.metrics import mean_squared_error
+These lines import the necessary libraries:
+numpy and pandas for data manipulation.
+matplotlib.pyplot for data visualization.
+MinMaxScaler from sklearn.preprocessing for scaling features.
+Sequential, LSTM, Dense, and Dropout from tensorflow.keras.layers for building the LSTM model.
+mean_squared_error from sklearn.metrics for evaluating the model's performance.
+python
+Copy code
+data = pd.read_csv('https://github.com/Sahil-Naik/BE-Programming/raw/main/LP-V(DL)/Assignment-4/GOOG.csv')
+This line reads the dataset from the given URL into a Pandas DataFrame named data.
+python
+Copy code
+data_copy = data.copy()
+data_copy.dropna(inplace=True)
+These lines create a copy of the original DataFrame and remove any rows with missing values.
+python
+Copy code
+selected_features = ['Open', 'High', 'Low', 'Close', 'Adj Close', 'Volume']
+data_copy = data_copy[selected_features]
+This line selects specific columns ('Open', 'High', 'Low', 'Close', 'Adj Close', 'Volume') from the DataFrame, presumably for modeling purposes.
+python
+Copy code
+scaler = MinMaxScaler()
+scaled_data = scaler.fit_transform(data_copy)
+This section scales the selected features using Min-Max scaling, ensuring that all feature values fall within the range [0, 1].
+
+Here's the explanation of the remaining code:
+
+python
+Copy code
+df = pd.DataFrame(data)
+df.head()
+This code converts the data variable (which is a DataFrame) into a new DataFrame called df and displays the first few rows of the DataFrame using the head() method.
+python
+Copy code
+df.iloc[3496]
+This line retrieves the row at index 3496 from the DataFrame df. It prints out the data for that specific row.
+python
+Copy code
+missing_values = df.isnull().sum()
+print("Missing Values:\n", missing_values)
+This section calculates the number of missing values in each column of the DataFrame df and prints out the results.
+python
+Copy code
+print("Dataset shape:", df.shape)
+print("Columns:", df.columns)
+These lines print out the shape of the DataFrame (number of rows and columns) and the names of all the columns.
+python
+Copy code
+print("Info:\n", df.info())
+This line prints out a concise summary of the DataFrame, including the data types of each column and the number of non-null values.
+python
+Copy code
+print("Summary statistics:\n", df.describe())
+This code generates summary statistics for the numerical columns in the DataFrame, such as count, mean, standard deviation, minimum, and maximum values.
+python
+Copy code
+df['Date'] = pd.to_datetime(df['Date'], utc=True)
+df.head()
+This section converts the 'Date' column in the DataFrame to datetime format, assuming that the 'Date' column contains date information. It ensures that the 'Date' column is recognized as datetime data type, which is important for time series analysis.
+python
+Copy code
+df.shape
+This line prints out the shape of the DataFrame df, which indicates the number of rows and columns in the DataFrame.
+python
+Copy code
+split_index=3496
+df.iloc[3496]
+This line retrieves the row at index 3496 from the DataFrame df again, similar to the earlier df.iloc[3496] line.
+
+
+Sure, let's break down the LSTM model-building code and the subsequent training process:
+
+python
+Copy code
+model = Sequential([
+    LSTM(units=100, return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])),
+    Dropout(0.2),
+    LSTM(units=100, return_sequences=True),
+    Dropout(0.2),
+    LSTM(units=100),
+    Dropout(0.2),
+    Dense(units=len(selected_features))
+])
+This section defines the architecture of the LSTM model using Keras's Sequential API. Here's a breakdown of each layer:
+LSTM(units=100, return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])): This creates the first LSTM layer with 100 units, specifying that it should return sequences (necessary for subsequent LSTM layers) and defining the input shape based on the shape of the training data (X_train.shape[1] is the number of time steps, and X_train.shape[2] is the number of features).
+Dropout(0.2): This adds a dropout layer with a dropout rate of 0.2, which helps prevent overfitting by randomly setting a fraction of input units to 0 during training.
+Two more identical LSTM layers with 100 units and return sequences set to True, followed by Dropout layers.
+LSTM(units=100): This creates the final LSTM layer with 100 units, which does not return sequences (default behavior) as it's the last LSTM layer in the stack.
+Dropout(0.2): Another Dropout layer is added after the last LSTM layer.
+Dense(units=len(selected_features)): This adds a Dense layer with the number of units equal to the number of selected features. This layer produces the final output of the model.
+python
+Copy code
+# Compile model
+model.compile(optimizer='adam', loss='mean_squared_error',metrics=['accuracy'])
+This line compiles the model, configuring it for training. It requires three arguments:
+optimizer: The optimizer algorithm used to update the weights during training. Here, 'adam' is used, which is a popular optimization algorithm known for its efficiency and ease of use.
+loss: The loss function used to measure the difference between the model's predictions and the actual target values. Here, 'mean_squared_error' is used, which calculates the mean squared error between the predicted and actual values.
+metrics: A list of metrics to evaluate the model's performance during training. Here, ['accuracy'] is used, but this metric is typically used for classification tasks, not regression tasks like this one. It might not be very informative here, and you might consider removing it or using a different metric like mean absolute error for regression tasks.
+python
+Copy code
+# Display model
+print(model.summary())
+This line prints a summary of the model's architecture, including the number of parameters in each layer and the total number of parameters in the model.
+python
+Copy code
+epochs = 20 
+history = model.fit(X_train, y_train, epochs=epochs, batch_size=32, verbose=1)
+This section trains the model using the training data (X_train and y_train) for a specified number of epochs (20 in this case) and a batch size of 32. Here's what each argument means:
+epochs: The number of times the entire training dataset is passed forward and backward through the neural network.
+batch_size: The number of samples processed before the model's weights are updated. Smaller batch sizes tend to result in a noisier gradient update but may converge faster. Larger batch sizes smooth out noisy gradients but may converge slower.
+verbose: Controls the verbosity of the training process. Set to 1 to display progress bars during training.
