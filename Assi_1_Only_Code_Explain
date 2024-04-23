@@ -59,3 +59,101 @@ plt.legend(['Train', 'Validation'], loc='upper left')
 plt.show()
 
 =========================================Explanation==================================================================
+pandas (pd): Pandas is a powerful library for data manipulation and analysis
+numpy (np): NumPy is a fundamental package for numerical computing with Python.
+tensorflow (tf): TensorFlow is an open-source deep learning framework developed by Google. It provides a comprehensive ecosystem of tools,
+libraries, and community resources for building and deploying machine learning models, particularly deep neural networks.
+
+The code df.isnull().sum() is used to count the number of missing values (NaN values) in each column of a DataFrame df
+
+df.mean()
+This line calculates the mean of each column in the DataFrame df.
+
+df.fillna(df.mean(), inplace=True)
+This line fills missing values in the DataFrame df with the mean of each respective column.
+
+x = df.drop('MEDV', axis=1)
+y = df['MEDV']
+These lines split the DataFrame df into features (x) and the target variable (y).
+x contains all columns except for the 'MEDV' column (presumably the target variable), achieved by using the drop() 
+method with axis=1 to drop the specified column.
+y contains only the 'MEDV' column, which is assumed to be the target variable for prediction.
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler
+These lines import the train_test_split function for splitting the dataset into training and testing sets, and the MinMaxScaler class 
+for scaling the features to a specified range.
+
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3)
+This line splits the features (x) and target (y) into training and testing sets.
+test_size=0.3 specifies that 30% of the data will be used for testing, and the remaining 70% will be used for training.
+
+scale = MinMaxScaler()
+x_train_scaled = scale.fit_transform(x_train)
+x_test_scaled = scale.fit_transform(x_test)
+This section initializes a MinMaxScaler object and then applies it to scale the features separately for the training and testing sets.
+fit_transform() method computes the minimum and maximum values for each feature in the training set (x_train) and then scales both the 
+training and testing sets accordingly.
+
+print("shape of scaled x train:", x_train_scaled.shape)
+print("shape of scaled x test:", x_test_scaled.shape)
+These lines print out the shapes of the scaled training and testing feature sets.
+
+x_train_scaled[0]
+This line accesses the first sample (row) of the scaled training feature set x_train_scaled. It returns an array containing the 
+scaled values of all features for the first sample.
+
+x_train_scaled[0].shape
+This line examines the shape of the first sample of the scaled training feature set. 
+It returns a tuple representing the dimensions of the array. Since x_train_scaled[0] returns a 1-dimensional array (vector), 
+its shape would be (n,), where n is the number of features.
+
+Model Initialization:
+python
+Copy code
+model = Sequential()
+This line initializes a new sequential model. The sequential model is a linear stack of layers, where you can add layers one by one.
+Adding Dense Layers:
+python
+Copy code
+model.add(Dense(128, activation='relu', input_shape=(x_train_scaled[0].shape)))
+model.add(Dense(64, activation='relu'))
+model.add(Dense(32, activation='relu'))
+model.add(Dense(16, activation='relu'))
+These lines add fully connected (dense) layers to the model.
+The first layer (Dense(128, activation='relu', input_shape=(x_train_scaled[0].shape))) specifies 128 units with ReLU activation function and expects an input shape equal to the shape of the first sample in the scaled training data (x_train_scaled[0].shape).
+Subsequent layers have fewer units, going from 64 to 32 to 16, all using ReLU activation function.
+Output Layer:
+python
+Copy code
+model.add(Dense(1))
+This line adds the output layer with a single unit, which is typical for regression tasks where you're predicting a single continuous value (e.g., house prices, stock prices).
+Since there's no activation function specified, this is a linear layer, meaning it outputs raw predictions without any non-linear transformation.
+Compilation:
+python
+Copy code
+model.compile(optimizer='adam', loss='mse', metrics=['mae'])
+This line compiles the model, configuring it for training.
+optimizer='adam' specifies the Adam optimization algorithm, which is commonly used for training neural networks.
+loss='mse' specifies the mean squared error loss function, which is suitable for regression tasks.
+metrics=['mae'] specifies that the mean absolute error (MAE) metric should be computed during training, in addition to the loss.
+
+x=x_train_scaled: The input features for training, which have been scaled.
+y=y_train: The target values for training.
+batch_size=1: The number of samples per gradient update. In this case, the batch size is set to 1, meaning that each training sample is processed individually (also known as stochastic gradient descent).
+verbose=1: Verbosity mode. It specifies how much information you want to see during training. Here, verbose=1 means that progress bars will be displayed during training.
+epochs=100: The number of epochs (iterations over the entire training dataset) to train the model.
+validation_data=(x_test_scaled, y_test): Optional validation data to evaluate the model's performance at the end of each epoch. Here, the validation data consists of the scaled testing features (x_test_scaled) and 
+the corresponding testing target values (y_test)
+
+plt.plot(history.history['loss']): This line plots the training loss (mean squared error) over epochs. The training loss is obtained from the history object returned by the model.fit() method.
+plt.plot(history.history['val_loss']): This line plots the validation loss (mean squared error) over epochs. The validation loss is also obtained from the history object.
+plt.title('Model Loss'): This line sets the title of the plot as 'Model Loss'.
+plt.xlabel('Epoch'): This line sets the label for the x-axis as 'Epoch', indicating the number of training epochs.
+plt.ylabel('Loss'): This line sets the label for the y-axis as 'Loss', indicating the mean squared error loss.
+plt.legend(['Train', 'Validation'], loc='upper left'): This line adds a legend to the plot, indicating which line corresponds to the training loss and which line corresponds to the validation loss. It is positioned at the upper left corner of the plot.
+plt.show(): This line displays the plot with the loss curves.
+
+By visualizing the training and validation loss, you can monitor the training process and check for signs of overfitting or 
+underfitting. Ideally, both training and validation loss should decrease over epochs, indicating that the model is learning from the 
+data. If the validation loss starts increasing while the training loss continues to decrease, it might indicate overfitting.
