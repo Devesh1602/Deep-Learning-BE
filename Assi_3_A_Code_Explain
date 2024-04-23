@@ -1,0 +1,132 @@
+NumPy:
+import numpy as np
+This line imports the NumPy library and aliases it as np. NumPy is a powerful library for numerical computations in Python, often used for handling arrays and matrices efficiently.
+
+Keras Optimizers:
+from keras.optimizers import Adam
+This line imports the Adam optimizer from the Keras library. Adam is a popular optimization algorithm used for training deep learning models. 
+It adapts the learning rate during training to improve convergence.
+
+TensorFlow:
+import tensorflow as tf
+This line imports the TensorFlow library. TensorFlow is an open-source deep learning framework developed by Google. 
+It provides tools for building and training machine learning models, including neural networks.
+
+TensorFlow Image Preprocessing:
+from tensorflow.keras.preprocessing.image import load_img, img_to_array
+This line imports the load_img and img_to_array functions from the tensorflow.keras.preprocessing.image module. 
+These functions are used for loading images from files and converting them to NumPy arrays, respectively. They are commonly used in image preprocessing pipelines for deep learning tasks.
+
+Importing Matplotlib:
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+These lines import the Matplotlib library, including the pyplot module as plt, and the image module as mpimg. 
+Matplotlib is a plotting library in Python that provides functions for visualizing data, including images.
+
+Specifying Image Path:
+image_path = 'Train/Train/Healthy/8ce77048e12f3dd4.jpg'
+This line specifies the file path to the image you want to display. It points to a JPEG image located in the 'Train/Train/Healthy' directory.
+
+Loading and Displaying the Image:
+img = mpimg.imread(image_path)
+plt.imshow(img)
+plt.show()
+mpimg.imread(image_path) loads the image located at image_path into a NumPy array.
+plt.imshow(img) displays the image represented by the NumPy array img using Matplotlib.
+plt.show() displays the image plot.
+
+Importing ImageDataGenerator:
+from keras.preprocessing.image import ImageDataGenerator
+This line imports the ImageDataGenerator class from Keras' image preprocessing module.
+ImageDataGenerator is used for real-time data augmentation and preprocessing of image data during training.
+
+Setting up Train and Test Data Generators:
+train_datagen = ImageDataGenerator(rescale=1./255, shear_range=0.2, zoom_range=0.2, horizontal_flip=True)
+test_datagen = ImageDataGenerator(rescale=1./255)
+These lines create instances of the ImageDataGenerator class for training and testing data, respectively.
+For the training data generator (train_datagen), several augmentation techniques are applied:
+rescale=1./255: Rescales pixel values to the range [0, 1].
+shear_range=0.2: Applies shear transformations with a range of 0.2.
+zoom_range=0.2: Applies random zooms with a range of 0.2.
+horizontal_flip=True: Randomly flips images horizontally.
+For the testing data generator (test_datagen), only rescaling is applied (rescale=1./255), as data augmentation is not performed on the testing data.
+
+Setting up Train Generator:
+train_generator = train_datagen.flow_from_directory('G:\DEEP LEARNING\Train\Train',
+                                                    target_size=(225, 225),
+                                                    batch_size=32,
+                                                    class_mode='categorical')
+This line creates a directory iterator for the training data using the flow_from_directory() method of the train_datagen object.
+The first argument specifies the directory containing the training images ('G:\DEEP LEARNING\Train\Train').
+target_size=(225, 225) specifies the size to which all images will be resized during preprocessing.
+batch_size=32 specifies the batch size for training.
+class_mode='categorical' indicates that the generator will yield one-hot encoded labels for categorical classification tasks.
+
+Setting up Validation Generator:
+validation_generator = test_datagen.flow_from_directory('G:\DEEP LEARNING\Validation\Validation',
+                                                        target_size=(225, 225),
+                                                        batch_size=32,
+                                                        class_mode='categorical')
+This line creates a directory iterator for the validation data using the flow_from_directory() method of the test_datagen object.
+The first argument specifies the directory containing the validation images ('G:\DEEP LEARNING\Validation\Validation').
+target_size=(225, 225) specifies the size to which all images will be resized during preprocessing (consistent with the training data).
+batch_size=32 specifies the batch size for validation.
+class_mode='categorical' indicates that the generator will yield one-hot encoded labels for categorical classification tasks.
+
+Importing Necessary Modules:
+from keras.models import Sequential
+from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
+These lines import the necessary modules from Keras to define and build the CNN model.
+
+Defining the Model:
+model = Sequential()
+This line initializes a Sequential model, which allows you to build a neural network by adding layers sequentially.
+
+Adding Convolutional Layers:
+model.add(Conv2D(32, (3, 3), input_shape=(225, 225, 3), activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Conv2D(64, (3, 3), activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+These lines add convolutional layers (Conv2D) followed by max-pooling layers (MaxPooling2D) to the model.
+The first convolutional layer has 32 filters/kernels of size 3x3, and it expects input images of shape (225, 225, 3) (225x225 pixels with 3 color channels - RGB).
+The activation function used is ReLU (activation='relu'), which introduces non-linearity.
+Max-pooling layers with a pool size of (2, 2) are added after each convolutional layer to downsample the feature maps.
+
+Flattening Layer:
+model.add(Flatten())
+This line adds a flattening layer (Flatten) to the model, which flattens the 2D feature maps into a 1D vector. This prepares the data for input into the fully connected layers.
+
+Adding Fully Connected Layers:
+model.add(Dense(64, activation='relu'))
+model.add(Dense(3, activation='softmax'))
+These lines add fully connected layers (Dense) to the model.
+The first fully connected layer has 64 units/neurons with ReLU activation.
+The final output layer has 3 units (corresponding to the number of classes) with softmax activation, which produces probability scores for each class.
+
+optimizer='adam'
+This parameter specifies the optimization algorithm to use during training. In this case, 'adam' refers to the Adam optimizer,
+which is an adaptive learning rate optimization algorithm that's well-suited for training deep neural networks.
+
+Loss Function:
+loss='categorical_crossentropy'
+This parameter specifies the loss function to use during training. 'categorical_crossentropy' is a common choice for multi-class classification problems
+with one-hot encoded labels. It computes the cross-entropy loss between the predicted probabilities and the true one-hot encoded labels. 
+
+Metrics:
+metrics=['accuracy']
+This parameter specifies the evaluation metric(s) to monitor during training. Here, 'accuracy' is chosen as the metric, which measures the proportion of correctly classified samples.
+
+Training the Model:
+history = model.fit(train_generator,
+                    batch_size=16,
+                    epochs=20,
+                    validation_data=validation_generator,
+                    validation_batch_size=16
+                    )
+This line trains the model using the fit() method of the model object.
+train_generator is used as the training data source, providing batches of augmented and preprocessed images along with their corresponding labels.
+batch_size=16 specifies the number of samples per gradient update. In each training iteration, the model will be updated based on gradients computed from 16 samples.
+epochs=20 specifies the number of training epochs, i.e., the number of times the model will iterate over the entire training dataset.
+validation_data=validation_generator specifies the validation data source, providing batches of preprocessed validation images and labels.
+validation_batch_size=16 specifies the batch size for the validation data.
+The training progress and evaluation metrics (e.g., loss and accuracy) for both training and validation datasets will be stored in the history object.
