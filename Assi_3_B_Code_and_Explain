@@ -81,6 +81,7 @@ This line imports the Fashion MNIST dataset from TensorFlow's keras.datasets mod
 
 Loading the Data:
 (train_images, train_labels), (test_images, test_labels) = fashion_mnist.load_data()
+
 This line loads the dataset into four variables:
 train_images: An array containing grayscale training images. Each image is represented as a 28x28 NumPy array with pixel values ranging from 0 to 255.
 train_labels: An array containing the corresponding labels for the training images. Each label is an integer from 0 to 9, representing the class of the clothing item.
@@ -91,13 +92,26 @@ The train_images.shape attribute provides information about the shape of the tra
 
 Normalization of Training Images:
 train_images = train_images / 255.0
+
 This line divides each pixel value in the train_images array by 255.0.
 Since the pixel values range from 0 to 255 (grayscale), dividing by 255.0 scales these values to the range [0, 1].
 Normalizing pixel values to this range is a common preprocessing step in deep learning, as it helps improve model convergence and stability during training.
 
 Normalization of Test Images:
 test_images = test_images / 255.0
+
 Similar to the previous line, this line divides each pixel value in the test_images array by 255.0 to normalize the test images.
+
+# Verify data is in correct format
+plt.figure(figsize = (10, 10))
+for i in range(25):
+  plt.subplot(5, 5, i + 1)
+  plt.xticks([])
+  plt.yticks([])
+  plt.grid(False)
+  plt.imshow(train_images[i], cmap = plt.cm.binary)
+  plt.xlabel(class_names[train_labels[i]])
+plt.show
 
 This loop iterates over the first 25 images in the training set.
 For each iteration, it creates a subplot in a 5x5 grid using Matplotlib's plt.subplot() function.
@@ -136,7 +150,8 @@ Compiling the Model:
 model.compile(optimizer='adam', loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True), metrics=['accuracy'])
 This line compiles the model using the specified optimizer, loss function, and metrics.
 optimizer='adam': The Adam optimizer is chosen for optimization.
-loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True): Sparse categorical cross-entropy loss is used as the loss function. Since the model's output does not have a softmax activation applied, from_logits=True is set to ensure proper handling of logits.
+loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True): Sparse categorical cross-entropy loss is used as the loss function. 
+Since the model's output does not have a softmax activation applied, from_logits=True is set to ensure proper handling of logits.
 metrics=['accuracy']: Accuracy is chosen as the evaluation metric to monitor during training.
 
 Printing Model Summary:
