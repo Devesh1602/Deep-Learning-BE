@@ -125,76 +125,145 @@ from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout
 from sklearn.metrics import mean_squared_error
+
 These lines import the necessary libraries:
 numpy and pandas for data manipulation.
 matplotlib.pyplot for data visualization.
-MinMaxScaler from sklearn.preprocessing for scaling features.
+MinMaxScaler from sklearn.preprocessing for scaling features. (Standardizes features by scaling each feature to a given range.)
 Sequential, LSTM, Dense, and Dropout from tensorflow.keras.layers for building the LSTM model.
 mean_squared_error from sklearn.metrics for evaluating the model's performance.
-python
-Copy code
-data = pd.read_csv('https://github.com/Sahil-Naik/BE-Programming/raw/main/LP-V(DL)/Assignment-4/GOOG.csv')
+
+data = pd.read_csv('GOOG.csv')
 This line reads the dataset from the given URL into a Pandas DataFrame named data.
-python
-Copy code
+
 data_copy = data.copy()
 data_copy.dropna(inplace=True)
 These lines create a copy of the original DataFrame and remove any rows with missing values.
-python
-Copy code
+
 selected_features = ['Open', 'High', 'Low', 'Close', 'Adj Close', 'Volume']
 data_copy = data_copy[selected_features]
 This line selects specific columns ('Open', 'High', 'Low', 'Close', 'Adj Close', 'Volume') from the DataFrame, presumably for modeling purposes.
-python
-Copy code
+
 scaler = MinMaxScaler()
 scaled_data = scaler.fit_transform(data_copy)
 This section scales the selected features using Min-Max scaling, ensuring that all feature values fall within the range [0, 1].
 
-Here's the explanation of the remaining code:
-
-python
-Copy code
 df = pd.DataFrame(data)
 df.head()
 This code converts the data variable (which is a DataFrame) into a new DataFrame called df and displays the first few rows of the DataFrame using the head() method.
-python
-Copy code
+
 df.iloc[3496]
 This line retrieves the row at index 3496 from the DataFrame df. It prints out the data for that specific row.
-python
-Copy code
+
 missing_values = df.isnull().sum()
 print("Missing Values:\n", missing_values)
 This section calculates the number of missing values in each column of the DataFrame df and prints out the results.
-python
-Copy code
+
 print("Dataset shape:", df.shape)
 print("Columns:", df.columns)
 These lines print out the shape of the DataFrame (number of rows and columns) and the names of all the columns.
-python
-Copy code
+
 print("Info:\n", df.info())
 This line prints out a concise summary of the DataFrame, including the data types of each column and the number of non-null values.
-python
-Copy code
+
 print("Summary statistics:\n", df.describe())
 This code generates summary statistics for the numerical columns in the DataFrame, such as count, mean, standard deviation, minimum, and maximum values.
-python
-Copy code
+
 df['Date'] = pd.to_datetime(df['Date'], utc=True)
 df.head()
-This section converts the 'Date' column in the DataFrame to datetime format, assuming that the 'Date' column contains date information. It ensures that the 'Date' column is recognized as datetime data type, which is important for time series analysis.
-python
-Copy code
+This section converts the 'Date' column in the DataFrame to datetime format, assuming that the 'Date' column contains date information. 
+It ensures that the 'Date' column is recognized as datetime data type, which is important for time series analysis.
+
 df.shape
 This line prints out the shape of the DataFrame df, which indicates the number of rows and columns in the DataFrame.
-python
-Copy code
-split_index=3496
-df.iloc[3496]
-This line retrieves the row at index 3496 from the DataFrame df again, similar to the earlier df.iloc[3496] line.
 
+1. ```python
+   def prepare_data(data, time_steps):
+   ```
+   - This line defines a Python function named `prepare_data` that takes two arguments: `data`, which represents the input data, and `time_steps`, which indicates the number of time steps to consider for creating sequences.
+
+2. ```python
+   X, y = [], []
+   ```
+   - Initializes two empty lists, `X` and `y`, which will be used to store the input sequences (`X`) and their corresponding target values (`y`).
+
+3. ```python
+   for i in range(len(data) - time_steps):
+   ```
+   - Starts a loop iterating over the range from 0 to the length of `data` minus `time_steps`. This loop generates the sequences and their targets based on the specified time steps.
+
+4. ```python
+   X.append(data[i:(i + time_steps)])
+   ```
+   - Appends a subsequence of `data` to the list `X`. The subsequence starts from index `i` and includes `time_steps` elements, creating a sequence of length `time_steps`.
+
+5. ```python
+   y.append(data[i + time_steps])
+   ```
+   - Appends the next element after the subsequence (at index `i + time_steps`) to the list `y`. This element becomes the target value corresponding to the generated sequence.
+
+6. ```python
+   return np.array(X), np.array(y)
+   ```
+   - Converts the lists `X` and `y` into NumPy arrays and returns them as the output of the function `prepare_data`.
+
+7. ```python
+   time_steps = 60
+   ```
+   - Sets the variable `time_steps` to the value 60, indicating the desired length of each sequence in terms of time steps.
+
+8. ```python
+   X, y = prepare_data(scaled_data, time_steps)
+   ```
+   - Calls the `prepare_data` function with `scaled_data` (presumably a scaled dataset) as the input data and `time_steps` as the number of time steps. It assigns the returned arrays `X` (input sequences) and `y` (target values) to the variables `X` and `y`.
+
+9. ```python
+   len(y)
+   ```
+   - Calculates and returns the length of the array `y`, which represents the number of target values generated by the `prepare_data` function. This length indicates the number of sequences created.
+
+10. ```python
+    split_ratio = 0.8  # Train-test split ratio
+    ```
+    - Defines a variable `split_ratio` and sets it to 0.8, representing the desired ratio for splitting the data into training and testing sets.
+
+11. ```python
+    split_index = int(split_ratio * len(X))
+    ```
+    - Calculates the index at which the data will be split based on the `split_ratio`. It multiplies the length of `X` by `split_ratio`, converts the result to an integer using `int`, and assigns it to the variable `split_index`.
+
+12. ```python
+    X_train, X_test = X[:split_index], X[split_index:]
+    y_train, y_test = y[:split_index], y[split_index:]
+    ```
+    - Splits the input sequences (`X`) and their corresponding target values (`y`) into training and testing sets using the calculated `split_index`. `X_train` and `y_train` contain the training sequences and targets, while `X_test` and `y_test` contain the testing sequences and targets.
+
+This code snippet demonstrates a data preparation process for time series data, where sequences are created from the input data along with their corresponding target values. It also includes a train-test split based on a specified split ratio.
+
+The code you provided is a data preparation step commonly used in time series forecasting or sequence prediction tasks, where historical data is used to create sequences and corresponding target values for training machine learning models. Let's discuss why each part of the code is written and its significance:
+
+1. **Function Definition (`prepare_data`):**
+   - Purpose: The `prepare_data` function is defined to create sequences and their corresponding target values from a given dataset.
+   - Arguments: It takes two arguments - `data`, which represents the input data, and `time_steps`, indicating the number of time steps to consider for creating sequences.
+   - Return Value: The function returns two NumPy arrays, `X` containing the input sequences and `y` containing the corresponding target values.
+
+2. **Loop for Sequence Generation:**
+   - Purpose: The loop iterates through the input data to create sequences and their targets.
+   - Sequence Creation: It appends subsequences of length `time_steps` from the input data to the `X` array, creating input sequences.
+   - Target Creation: It appends the element following each subsequence (at `i + time_steps` index) to the `y` array, creating target values.
+
+3. **Usage of `prepare_data`:**
+   - Purpose: After defining the `prepare_data` function, it is used to prepare the dataset for training a machine learning model.
+   - Arguments: The function is called with the scaled dataset (`scaled_data`) and a specified number of time steps (`time_steps`).
+   - Return Values: The returned arrays `X` and `y` represent the prepared input sequences and their corresponding targets.
+
+4. **Train-Test Split:**
+   - Purpose: After preparing the data, a train-test split is performed to separate the dataset into training and testing sets.
+   - Split Ratio: The split ratio (`split_ratio`) determines the proportion of data allocated to the training set (80% in this case).
+   - Calculating Split Index: The index at which the split occurs (`split_index`) is calculated based on the split ratio and the length of the input sequences.
+   - Splitting Data: Using the split index, the input sequences (`X`) and targets (`y`) are divided into training and testing sets (`X_train`, `X_test`, `y_train`, `y_test`).
+
+Overall, this code segment is essential for preparing sequential data for machine learning tasks, ensuring that the data is structured into input sequences and their corresponding targets, and then splitting the data for training and evaluation purposes. This structured data format is crucial for training models like recurrent neural networks (RNNs) or LSTM networks that require sequential input.
 
 Sure, let's break down the LSTM model-building code and the subsequent training process:
 
@@ -210,30 +279,101 @@ model = Sequential([
     Dense(units=len(selected_features))
 ])
 This section defines the architecture of the LSTM model using Keras's Sequential API. Here's a breakdown of each layer:
-LSTM(units=100, return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])): This creates the first LSTM layer with 100 units, specifying that it should return sequences (necessary for subsequent LSTM layers) and defining the input shape based on the shape of the training data (X_train.shape[1] is the number of time steps, and X_train.shape[2] is the number of features).
+LSTM(units=100, return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])): This creates the first LSTM layer with 100 units, specifying that it should return sequences (necessary for subsequent LSTM layers) 
+and defining the input shape based on the shape of the training data (X_train.shape[1] is the number of time steps, and X_train.shape[2] is the number of features).
 Dropout(0.2): This adds a dropout layer with a dropout rate of 0.2, which helps prevent overfitting by randomly setting a fraction of input units to 0 during training.
 Two more identical LSTM layers with 100 units and return sequences set to True, followed by Dropout layers.
 LSTM(units=100): This creates the final LSTM layer with 100 units, which does not return sequences (default behavior) as it's the last LSTM layer in the stack.
 Dropout(0.2): Another Dropout layer is added after the last LSTM layer.
 Dense(units=len(selected_features)): This adds a Dense layer with the number of units equal to the number of selected features. This layer produces the final output of the model.
-python
-Copy code
+
 # Compile model
 model.compile(optimizer='adam', loss='mean_squared_error',metrics=['accuracy'])
 This line compiles the model, configuring it for training. It requires three arguments:
-optimizer: The optimizer algorithm used to update the weights during training. Here, 'adam' is used, which is a popular optimization algorithm known for its efficiency and ease of use.
+optimizer: The optimizer algorithm is used to update the weights during training. Here, 'adam' is used, which is a popular optimization algorithm known for its efficiency and ease of use.
 loss: The loss function used to measure the difference between the model's predictions and the actual target values. Here, 'mean_squared_error' is used, which calculates the mean squared error between the predicted and actual values.
 metrics: A list of metrics to evaluate the model's performance during training. Here, ['accuracy'] is used, but this metric is typically used for classification tasks, not regression tasks like this one. It might not be very informative here, and you might consider removing it or using a different metric like mean absolute error for regression tasks.
-python
-Copy code
+
 # Display model
 print(model.summary())
 This line prints a summary of the model's architecture, including the number of parameters in each layer and the total number of parameters in the model.
-python
-Copy code
-epochs = 20 
-history = model.fit(X_train, y_train, epochs=epochs, batch_size=32, verbose=1)
+
+
+history = model.fit(X_train, y_train, epochs=20, batch_size=32, verbose=1)
 This section trains the model using the training data (X_train and y_train) for a specified number of epochs (20 in this case) and a batch size of 32. Here's what each argument means:
 epochs: The number of times the entire training dataset is passed forward and backward through the neural network.
 batch_size: The number of samples processed before the model's weights are updated. Smaller batch sizes tend to result in a noisier gradient update but may converge faster. Larger batch sizes smooth out noisy gradients but may converge slower.
 verbose: Controls the verbosity of the training process. Set to 1 to display progress bars during training.
+
+
+1. `loss = history.history['loss']`:
+   - This line extracts the training loss values from the `history` object, which typically contains information about the training process of a machine learning model.
+
+2. `epochs = range(len(loss))`:
+   - It creates a range of values representing the number of epochs, which is often used as the x-axis in plots to show how the loss changes over training iterations.
+
+3. `plt.plot(epochs, loss, 'r', label='Training loss')`:
+   - This line plots the training loss against the number of epochs. The `'r'` specifies the color red for the plot, and `label='Training loss'` adds a label to the plot for better visualization.
+
+4. `plt.title('Training loss', size=15, weight='bold')`:
+   - Sets the title of the plot with a font size of 15 and bold weight.
+
+5. `plt.legend(loc=0)`:
+   - Displays the legend on the plot, with `loc=0` typically meaning the best location determined automatically by Matplotlib.
+
+6. `plt.figure()`:
+   - This line creates a new figure, ensuring that subsequent plots are shown separately.
+
+7. `plt.show()`:
+   - Displays the plot(s) created using Matplotlib.
+
+8. `train_loss = model.evaluate(X_train, y_train, verbose=0)` and `test_loss = model.evaluate(X_test, y_test, verbose=0)`:
+   - These lines evaluate the model's loss on the training and testing datasets, respectively, using the `evaluate` method of the model.
+
+9. `predictions = model.predict(X_test)`:
+   - Generates predictions for the testing dataset using the trained model.
+
+10. `predictions = scaler.inverse_transform(predictions)` and `y_test_inverse = scaler.inverse_transform(y_test)`:
+    - These lines inverse transform the scaled predictions and actual target values to their original scale. This step is necessary when working with scaled data.
+
+11. Plotting the Predictions and Actual Values:
+    - These lines create a plot showing the predicted and actual values of a specific feature (e.g., Close Price) over time.
+
+12. `from sklearn.metrics import mean_absolute_error, mean_squared_error` and `import numpy as np`:
+    - Imports the necessary libraries (`sklearn.metrics` and `numpy`) for calculating evaluation metrics.
+
+13. `mae = mean_absolute_error(y_test_inverse[:,4],predictions[:,4])`:
+    - Calculates the Mean Absolute Error (MAE) between the actual and predicted values for a specific feature (index 4 in this case).
+
+14. `print(f'Mean Absolute Error (MAE): {mae}')`:
+    - Displays the calculated Mean Absolute Error.
+
+Overall, this code segment performs model evaluation, visualization of training loss, prediction plotting, and evaluation metric calculation, providing insights into the model's performance on the testing dataset.
+
+The code segment you provided serves several purposes related to evaluating, visualizing, and interpreting the performance of a machine learning model, particularly in the context of stock price prediction. Here's why each part of the code is written:
+
+1. **Extracting Training Loss** (`loss = history.history['loss']`):
+   - This line extracts the training loss values from the `history` object. The `history` object typically contains information about the model's performance during training, including metrics like loss and accuracy. Extracting the loss values allows you to analyze how the model's loss changes over epochs, providing insights into its learning process.
+
+2. **Plotting Training Loss Over Epochs**:
+   - The subsequent lines involving `epochs`, `plt.plot()`, `plt.title()`, `plt.legend()`, and `plt.show()` are used to create a plot that visualizes the training loss over epochs. Visualizing the loss helps in understanding how the model's performance improves or changes during training.
+
+3. **Model Evaluation** (`train_loss = model.evaluate(X_train, y_train, verbose=0)` and `test_loss = model.evaluate(X_test, y_test, verbose=0)`):
+   - These lines evaluate the model's loss on both the training and testing datasets. Evaluating the model on unseen data (testing dataset) is crucial to assess its generalization ability and detect any overfitting or underfitting issues.
+
+4. **Generating Predictions** (`predictions = model.predict(X_test)`):
+   - This line generates predictions for the testing dataset using the trained model. Predictions are essential for comparing the model's output with the actual values to assess its accuracy and usefulness.
+
+5. **Plotting Predictions and Actual Values**:
+   - The code includes plotting commands (`plt.plot()`, `plt.title()`, `plt.xlabel()`, `plt.ylabel()`, `plt.legend()`, `plt.show()`) to visualize the predicted and actual values of a specific feature (e.g., stock price) over time. This visualization allows for a qualitative assessment of the model's performance in capturing the underlying patterns in the data.
+
+6. **Calculating Evaluation Metrics** (`mae = mean_absolute_error(y_test_inverse[:,4], predictions[:,4])`):
+   - The code calculates the Mean Absolute Error (MAE) between the actual and predicted values. MAE is a common evaluation metric used to quantify the average magnitude of errors in predictions, providing a numerical measure of the model's accuracy.
+
+Overall, this code segment is written to comprehensively evaluate, visualize, and interpret the performance of a stock price prediction model, helping analysts and developers make informed decisions about the model's effectiveness and potential areas for improvement.
+
+
+
+
+
+
